@@ -1,0 +1,2110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Marriage Management System — YaPaze Technologies</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --gold:#C9A84C;
+  --gold-light:#E8CC80;
+  --gold-dim:#8A6F32;
+  --ink:#0A0A0F;
+  --ink2:#111118;
+  --surface:#16161F;
+  --surface2:#1E1E2A;
+  --muted:#4A4A5E;
+  --text:#E8E8F0;
+  --text-dim:#8888A0;
+  --accent:#7B5EA7;
+  --accent2:#4FC3A1;
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{
+  font-family:'DM Sans',sans-serif;
+  background:var(--ink);
+  color:var(--text);
+  overflow-x:hidden;
+  cursor:none;
+}
+
+/* Custom cursor */
+#cursor{
+  width:12px;height:12px;
+  border-radius:50%;
+  background:var(--gold);
+  position:fixed;top:0;left:0;
+  pointer-events:none;
+  z-index:9999;
+  transition:transform .15s ease,background .2s ease;
+  mix-blend-mode:difference;
+}
+#cursor-ring{
+  width:36px;height:36px;
+  border-radius:50%;
+  border:1px solid var(--gold);
+  position:fixed;top:0;left:0;
+  pointer-events:none;
+  z-index:9998;
+  transition:transform .35s cubic-bezier(.17,.67,.48,1.04),opacity .3s;
+  opacity:.5;
+}
+
+/* Navigation dots */
+#nav-dots{
+  position:fixed;right:2rem;top:50%;
+  transform:translateY(-50%);
+  z-index:100;
+  display:flex;flex-direction:column;gap:12px;
+}
+.dot{
+  width:8px;height:8px;
+  border-radius:50%;
+  background:var(--muted);
+  cursor:pointer;
+  transition:all .3s ease;
+  border:none;
+}
+.dot.active{
+  background:var(--gold);
+  transform:scale(1.4);
+}
+.dot:hover{background:var(--gold-light)}
+
+/* Progress bar */
+#progress{
+  position:fixed;top:0;left:0;
+  height:2px;background:var(--gold);
+  z-index:200;
+  transition:width .4s ease;
+  box-shadow:0 0 10px var(--gold);
+}
+
+/* Slide system */
+.slide{
+  min-height:100vh;
+  display:flex;flex-direction:column;
+  justify-content:center;align-items:center;
+  padding:4rem 6rem;
+  position:relative;
+  overflow:hidden;
+}
+
+/* Grain overlay */
+.slide::before{
+  content:'';
+  position:absolute;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");
+  pointer-events:none;opacity:.4;z-index:1;
+}
+.slide > *{position:relative;z-index:2}
+
+/* =====================
+   SLIDE 1 — COVER
+   ===================== */
+#s1{
+  background:var(--ink);
+  text-align:center;
+}
+.cover-bg{
+  position:absolute;inset:0;
+  background:radial-gradient(ellipse 70% 60% at 50% 40%, rgba(201,168,76,.08) 0%, transparent 70%);
+  pointer-events:none;
+}
+.cover-rings{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  pointer-events:none;
+}
+.ring{
+  position:absolute;
+  border-radius:50%;
+  border:1px solid rgba(201,168,76,.08);
+  animation:pulse 8s ease-in-out infinite;
+}
+.ring:nth-child(1){width:300px;height:300px;animation-delay:0s}
+.ring:nth-child(2){width:500px;height:500px;animation-delay:1.5s}
+.ring:nth-child(3){width:700px;height:700px;animation-delay:3s}
+.ring:nth-child(4){width:900px;height:900px;animation-delay:4.5s}
+@keyframes pulse{
+  0%,100%{transform:scale(1);opacity:.4}
+  50%{transform:scale(1.02);opacity:.15}
+}
+.cover-eyebrow{
+  font-family:'DM Mono',monospace;
+  font-size:11px;letter-spacing:.3em;
+  color:var(--gold);text-transform:uppercase;
+  margin-bottom:2rem;
+  opacity:0;animation:fadeUp .8s .3s forwards;
+}
+.cover-title{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(3rem,6vw,5.5rem);
+  font-weight:700;
+  line-height:1.05;
+  letter-spacing:-.02em;
+  margin-bottom:1.5rem;
+  opacity:0;animation:fadeUp .8s .5s forwards;
+}
+.cover-title span{
+  font-style:italic;color:var(--gold);
+}
+.cover-sub{
+  font-size:1.1rem;color:var(--text-dim);
+  font-weight:300;
+  max-width:480px;
+  line-height:1.7;
+  margin-bottom:3rem;
+  opacity:0;animation:fadeUp .8s .7s forwards;
+}
+.cover-logo{
+  position:absolute;top:2rem;left:2rem;
+  display:flex;align-items:center;gap:1rem;
+  z-index:5;
+  padding:.8rem 1.2rem;
+  border:1px solid rgba(201,168,76,.25);
+  border-radius:999px;
+  background:rgba(9,9,14,.85);
+}
+.cover-logo img{
+  width:56px;height:56px;object-fit:contain;
+  display:block;
+}
+/* Site header - centered and sized to content */
+.site-header{
+  position:fixed;top:1rem;left:50%;transform:translateX(-50%);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:6px 18px;border-radius:32px;z-index:9998;
+  background:linear-gradient(90deg,rgba(10,10,15,.7),rgba(20,20,28,.55));
+  border:1px solid rgba(255,255,255,.04);backdrop-filter:blur(6px);
+  gap:20px;width:auto;max-width:95%;
+}
+.site-header .logo-inline{display:flex;align-items:center;gap:.6rem}
+.site-header .logo-inline img{height:40px;width:auto;max-width:140px;display:block}
+.site-header .nav{display:flex;gap:18px;align-items:center}
+.site-header .nav a{color:var(--text-dim);text-decoration:none;font-weight:600;letter-spacing:.06em;padding:.45rem .6rem;border-radius:999px}
+.site-header .nav a:hover,.site-header .nav a:focus{color:var(--text);text-decoration:underline}
+.site-header .cta{display:flex;gap:12px;align-items:center}
+.btn-sm{padding:.45rem .9rem;border-radius:999px;border:none;background:linear-gradient(90deg,#6f5bd6,#8b6cf0);color:#fff;font-weight:700;cursor:pointer}
+.btn-sm:hover,.btn-sm:focus{transform:translateY(-2px);box-shadow:0 6px 18px rgba(111,91,214,.18)}
+.btn-primary:hover,.btn-primary:focus{background:var(--gold-light);transform:translateY(-2px);box-shadow:0 8px 24px rgba(201,168,76,.12)}
+.btn-secondary:hover,.btn-secondary:focus{background:rgba(255,255,255,.03);transform:translateY(-2px);border-color:rgba(255,255,255,.18)}
+.btn-ghost:hover,.btn-ghost:focus{background:rgba(255,255,255,.03);border-color:rgba(255,255,255,.12)}
+
+/* Header pill style (like reference) */
+.site-header{
+  box-shadow:0 10px 30px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.02);
+  padding:10px 22px;border-radius:999px;border:1px solid rgba(255,255,255,.06);
+  background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(0,0,0,.15));
+}
+.site-header .nav a{color:rgba(255,255,255,.9)}
+.site-header .nav a:hover{color:#fff;background:rgba(255,255,255,.03)}
+.site-header .cta .btn-sm{border-radius:999px;padding:.5rem 1rem}
+
+/* Pricing cards */
+.price-wrap{display:flex;gap:2rem;justify-content:center;align-items:stretch;margin-top:1.8rem}
+.price-card{width:300px;background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,.01));border:1px solid rgba(255,255,255,.04);padding:1.6rem;border-radius:16px;box-shadow:0 12px 30px rgba(0,0,0,.6)}
+.price-card.featured{transform:translateY(-8px);border-color:rgba(201,168,76,.18);box-shadow:0 18px 40px rgba(0,0,0,.7),0 0 30px rgba(201,168,76,.04)}
+.price-card h3{margin:0 0 .6rem;color:var(--text);font-size:1.25rem}
+.price-card .includes{color:var(--text-dim);font-size:.92rem;line-height:1.6;margin-top:.6rem}
+.price-card .connect{margin-top:1rem;display:flex;justify-content:center}
+.price-card .connect .btn-primary{padding:.6rem 1.2rem;border-radius:28px}
+
+
+/* Contact box (glassy) for final slide */
+.connect-box{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.04);padding:1rem;border-radius:14px;backdrop-filter:blur(6px);display:inline-block}
+.connect-box h4{margin:0 0 .6rem;color:var(--text);font-size:.95rem}
+.contact-actions{display:flex;gap:.8rem;align-items:center}
+.contact-actions .btn-primary{padding:.6rem 1rem;border-radius:10px}
+.contact-actions .btn-secondary{padding:.6rem 1rem;border-radius:10px}
+.cover-logo span{
+  font-size:1rem;font-weight:600;letter-spacing:.05em;
+  color:var(--text);
+}
+.contact-list{display:flex;flex-direction:row;gap:22px;max-width:1100px;margin:1.6rem auto;justify-content:center;flex-wrap:nowrap;overflow-x:auto;padding:0 1rem}
+.contact-item{display:flex;flex-direction:column;align-items:center;gap:10px;padding:22px;border-radius:12px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04);text-decoration:none;color:var(--text);width:240px}
+.contact-item:hover{background:rgba(255,255,255,.035);border-color:rgba(255,255,255,.08)}
+.ci-left{width:56px;height:56px;border-radius:12px;background:rgba(255,255,255,.03);display:flex;align-items:center;justify-content:center;font-size:20px}
+.ci-content{display:flex;flex-direction:column;align-items:center}
+.ci-title{font-weight:700}
+.ci-sub{color:var(--text-dim);font-size:.95rem;margin-top:6px}
+.ci-arrow{margin-left:auto;color:var(--text-dim);font-weight:700}
+.ci-actions{margin-top:10px;display:flex;gap:.6rem}
+.ci-actions .btn-sm{padding:.5rem .9rem}
+.ci-actions .btn-primary{color:#000 !important;background:var(--gold);border:none;padding:.6rem 1rem;border-radius:999px}
+.ci-actions .btn-primary:hover{background:var(--gold-light)}
+.cover-badge{
+  display:inline-flex;align-items:center;gap:.5rem;
+  border:1px solid rgba(201,168,76,.25);
+  border-radius:100px;
+  padding:.6rem 1.4rem;
+  font-size:.8rem;
+  letter-spacing:.1em;
+  color:var(--gold-light);
+  opacity:0;animation:fadeUp .8s .9s forwards;
+}
+.dot-sep{width:4px;height:4px;border-radius:50%;background:var(--gold)}
+.cover-scroll{
+  position:absolute;bottom:2.5rem;left:50%;transform:translateX(-50%);
+  display:flex;flex-direction:column;align-items:center;gap:.5rem;
+  color:var(--muted);font-size:.7rem;letter-spacing:.15em;
+  opacity:0;animation:fadeUp .8s 1.2s forwards;
+}
+.scroll-line{width:1px;height:40px;background:linear-gradient(to bottom,var(--gold),transparent);animation:scrollLine 2s ease-in-out infinite}
+@keyframes scrollLine{0%,100%{opacity:.4}50%{opacity:1}}
+
+/* =====================
+   SLIDE 2 — PROBLEM
+   ===================== */
+#s2{background:var(--ink2);align-items:flex-start}
+.section-label{
+  font-family:'DM Mono',monospace;font-size:11px;
+  letter-spacing:.25em;color:var(--gold);text-transform:uppercase;
+  margin-bottom:1.2rem;
+  display:flex;align-items:center;gap:1rem;
+}
+.section-label::before{content:'';display:block;width:40px;height:1px;background:var(--gold)}
+.slide-heading{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(2.2rem,4vw,3.5rem);
+  line-height:1.1;font-weight:700;
+  margin-bottom:1rem;
+}
+.slide-heading em{color:var(--gold);font-style:italic}
+.pain-grid{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:1.2rem;margin-top:2.5rem;width:100%;max-width:900px;
+}
+.pain-card{
+  background:var(--surface);
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:16px;
+  padding:1.6rem;
+  display:flex;gap:1rem;align-items:flex-start;
+  transition:border-color .3s,transform .3s;
+  opacity:0;transform:translateY(20px);
+}
+.pain-card.visible{opacity:1;transform:translateY(0);transition:opacity .5s,transform .5s,border-color .3s}
+.pain-card:hover{border-color:rgba(201,168,76,.25);transform:translateY(-2px)}
+.pain-icon{
+  font-size:1.8rem;
+  flex-shrink:0;
+  width:48px;height:48px;
+  border-radius:12px;
+  background:rgba(201,168,76,.06);
+  display:flex;align-items:center;justify-content:center;
+}
+.pain-title{font-weight:500;margin-bottom:.3rem;font-size:.95rem}
+.pain-desc{color:var(--text-dim);font-size:.82rem;line-height:1.6}
+
+/* =====================
+   SLIDE 3 — SOLUTION
+   ===================== */
+#s3{background:var(--ink)}
+.solution-layout{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:4rem;align-items:center;
+  width:100%;max-width:1100px;
+}
+.solution-visual{
+  position:relative;height:420px;
+}
+.phone-frame{
+  width:200px;height:380px;
+  background:var(--surface2);
+  border-radius:28px;
+  border:1px solid rgba(255,255,255,.08);
+  position:absolute;left:50%;top:50%;
+  transform:translate(-50%,-50%);
+  overflow:hidden;
+  box-shadow:0 40px 80px rgba(0,0,0,.6);
+}
+.phone-screen{
+  background:linear-gradient(160deg,#1a1a2e 0%,#16213e 100%);
+  height:100%;
+  display:flex;flex-direction:column;
+  align-items:center;
+  padding:1.2rem .8rem;
+  gap:.6rem;
+}
+.phone-header{
+  width:100%;
+  background:rgba(201,168,76,.1);
+  border-radius:8px;
+  padding:.5rem .7rem;
+  font-size:.55rem;
+  color:var(--gold-light);
+  text-align:center;
+  font-family:'Playfair Display',serif;
+  border:1px solid rgba(201,168,76,.15);
+}
+.phone-card{
+  width:100%;background:rgba(255,255,255,.04);
+  border-radius:8px;padding:.6rem .7rem;
+  border:1px solid rgba(255,255,255,.06);
+  font-size:.52rem;color:var(--text-dim);
+}
+.phone-card-title{color:var(--text);font-size:.58rem;font-weight:500;margin-bottom:.2rem}
+.phone-map{
+  width:100%;height:70px;
+  background:linear-gradient(135deg,#1e3a2f,#0f2318);
+  border-radius:8px;
+  border:1px solid rgba(79,195,161,.15);
+  display:flex;align-items:center;justify-content:center;
+  font-size:.52rem;color:var(--accent2);
+}
+.phone-btn{
+  width:100%;
+  background:var(--gold);border-radius:6px;
+  padding:.4rem;text-align:center;
+  font-size:.55rem;font-weight:600;
+  color:var(--ink);
+}
+.floating-badge{
+  position:absolute;
+  background:var(--surface2);
+  border:1px solid rgba(201,168,76,.2);
+  border-radius:12px;
+  padding:.6rem 1rem;
+  font-size:.7rem;
+  white-space:nowrap;
+  animation:float 4s ease-in-out infinite;
+}
+.fb1{top:10%;left:-20%;animation-delay:0s}
+.fb2{top:35%;right:-25%;animation-delay:1.3s}
+.fb3{bottom:10%;left:-15%;animation-delay:2.6s}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.fb-dot{width:6px;height:6px;border-radius:50%;background:var(--accent2);display:inline-block;margin-right:.4rem}
+.solution-list{display:flex;flex-direction:column;gap:1rem}
+.sol-item{
+  display:flex;align-items:flex-start;gap:1rem;
+  opacity:0;transform:translateX(20px);
+}
+.sol-item.visible{opacity:1;transform:translateX(0);transition:all .5s}
+.sol-num{
+  font-family:'DM Mono',monospace;font-size:.7rem;
+  color:var(--gold);width:24px;flex-shrink:0;
+  margin-top:2px;
+}
+.sol-text h3{font-size:1rem;font-weight:500;margin-bottom:.2rem}
+.sol-text p{font-size:.82rem;color:var(--text-dim);line-height:1.5}
+
+/* =====================
+   SLIDE 4 — FEATURES
+   ===================== */
+#s4{background:var(--ink2)}
+.features-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:1rem;width:100%;max-width:1000px;margin-top:2.5rem;
+}
+.feat-card{
+  background:var(--surface);
+  border:1px solid rgba(255,255,255,.05);
+  border-radius:16px;padding:1.4rem;
+  position:relative;overflow:hidden;
+  cursor:default;
+  transition:all .3s ease;
+  opacity:0;transform:translateY(16px);
+}
+.feat-card.visible{opacity:1;transform:translateY(0);transition:all .5s}
+.feat-card::after{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(circle at 80% 20%,rgba(201,168,76,.05),transparent 70%);
+  pointer-events:none;
+}
+.feat-card:hover{
+  border-color:rgba(201,168,76,.2);
+  transform:translateY(-4px);
+  background:var(--surface2);
+}
+.feat-emoji{font-size:1.6rem;margin-bottom:.8rem;display:block}
+.feat-name{font-size:.9rem;font-weight:500;margin-bottom:.4rem}
+.feat-desc{font-size:.76rem;color:var(--text-dim);line-height:1.6}
+.feat-tag{
+  display:inline-block;margin-top:.7rem;
+  font-size:.65rem;letter-spacing:.08em;
+  color:var(--gold);
+  background:rgba(201,168,76,.08);
+  border-radius:4px;padding:.2rem .5rem;
+}
+
+/* =====================
+   SLIDE 5 — NOTIFICATIONS
+   ===================== */
+#s5{background:var(--ink)}
+.notif-layout{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:3.5rem;align-items:center;
+  width:100%;max-width:1100px;
+}
+.timeline{
+  display:flex;flex-direction:column;gap:0;
+  position:relative;
+}
+.timeline::before{
+  content:'';position:absolute;left:20px;top:24px;
+  width:1px;height:calc(100% - 48px);
+  background:linear-gradient(to bottom,var(--gold),transparent);
+}
+.tl-item{
+  display:flex;gap:1.2rem;align-items:flex-start;
+  padding-bottom:1.6rem;
+  opacity:0;transform:translateX(-16px);
+}
+.tl-item.visible{opacity:1;transform:translateX(0);transition:all .5s}
+.tl-dot{
+  width:40px;height:40px;
+  border-radius:50%;
+  border:2px solid var(--gold);
+  background:var(--ink);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+  font-size:.75rem;
+  font-family:'DM Mono',monospace;
+  color:var(--gold);
+  position:relative;z-index:1;
+}
+.tl-content h3{font-size:.9rem;font-weight:500;margin-bottom:.25rem}
+.tl-content p{font-size:.78rem;color:var(--text-dim);line-height:1.5}
+.tl-content .channels{
+  display:flex;gap:.4rem;margin-top:.5rem;
+}
+.ch-pill{
+  font-size:.65rem;border-radius:100px;
+  padding:.2rem .6rem;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.08);
+  color:var(--text-dim);
+}
+.notif-preview{
+  background:var(--surface2);border-radius:20px;
+  padding:1.5rem;border:1px solid rgba(255,255,255,.06);
+  position:relative;
+}
+.notif-preview-label{
+  font-size:.65rem;letter-spacing:.15em;color:var(--muted);
+  text-transform:uppercase;margin-bottom:1rem;
+}
+.message-bubble{
+  background:rgba(201,168,76,.08);
+  border:1px solid rgba(201,168,76,.12);
+  border-radius:16px 16px 16px 4px;
+  padding:1rem 1.2rem;
+  font-size:.82rem;line-height:1.7;
+  margin-bottom:.8rem;
+  position:relative;
+}
+.message-bubble b{color:var(--gold-light)}
+.ad-strip{
+  background:var(--surface);
+  border:1px solid rgba(123,94,167,.2);
+  border-radius:10px;padding:.8rem 1rem;
+  display:flex;gap:.8rem;align-items:center;
+  font-size:.72rem;
+}
+.ad-img{
+  width:44px;height:44px;border-radius:8px;
+  background:linear-gradient(135deg,var(--accent),#4a3878);
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  font-size:1.2rem;
+}
+.ad-text{color:var(--text-dim)}
+.ad-text b{color:var(--text);display:block;font-size:.78rem}
+.ad-tag{color:var(--accent);font-size:.65rem;margin-top:2px}
+.channel-icons{
+  display:flex;gap:.6rem;margin-top:1rem;flex-wrap:wrap;
+}
+.chan-icon{
+  display:flex;align-items:center;gap:.4rem;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:8px;padding:.4rem .8rem;
+  font-size:.72rem;color:var(--text-dim);
+}
+
+/* =====================
+   SLIDE 6 — ADS MODEL
+   ===================== */
+#s6{background:var(--ink2)}
+.revenue-layout{
+  display:grid;grid-template-columns:1.2fr 1fr;
+  gap:3rem;width:100%;max-width:1100px;
+  align-items:start;
+}
+.tier-cards{display:flex;flex-direction:column;gap:.8rem;margin-top:2rem}
+.tier-card{
+  border-radius:14px;
+  padding:1.2rem 1.4rem;
+  border:1px solid rgba(255,255,255,.06);
+  display:flex;align-items:center;justify-content:space-between;
+  transition:all .3s;cursor:default;
+  opacity:0;transform:translateX(-16px);
+}
+.tier-card.visible{opacity:1;transform:translateX(0);transition:all .5s}
+.tier-card.basic{background:rgba(255,255,255,.03)}
+.tier-card.featured{background:rgba(201,168,76,.06);border-color:rgba(201,168,76,.2)}
+.tier-card.exclusive{background:rgba(123,94,167,.08);border-color:rgba(123,94,167,.2)}
+.tier-name{font-weight:500;font-size:.9rem}
+.tier-perks{font-size:.72rem;color:var(--text-dim);margin-top:.2rem;line-height:1.5}
+.tier-price{
+  font-family:'Playfair Display',serif;
+  font-size:1.3rem;color:var(--gold);
+  text-align:right;
+}
+.tier-price span{font-size:.65rem;color:var(--text-dim);display:block;font-family:'DM Sans',sans-serif}
+.revenue-right{margin-top:2rem}
+.revenue-stat{
+  padding:1.2rem;
+  background:var(--surface);
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,.05);
+  margin-bottom:.8rem;
+  display:flex;align-items:center;justify-content:space-between;
+  opacity:0;
+}
+.revenue-stat.visible{opacity:1;transition:opacity .5s}
+.revenue-stat-label{font-size:.78rem;color:var(--text-dim)}
+.revenue-stat-val{
+  font-family:'Playfair Display',serif;
+  font-size:1.6rem;color:var(--gold-light);
+}
+.where-label{
+  font-size:.65rem;letter-spacing:.12em;color:var(--muted);
+  text-transform:uppercase;margin:1.2rem 0 .6rem;
+}
+.placement-list{display:flex;flex-direction:column;gap:.4rem}
+.placement-item{
+  display:flex;align-items:center;gap:.6rem;
+  font-size:.78rem;color:var(--text-dim);
+}
+.placement-item::before{
+  content:'';width:6px;height:6px;
+  border-radius:50%;background:var(--gold);flex-shrink:0;
+}
+
+/* =====================
+   SLIDE 7 — GUEST FLOW
+   ===================== */
+#s7{background:var(--ink)}
+.flow-wrapper{width:100%;max-width:900px;margin-top:2rem}
+.flow-steps{
+  display:flex;align-items:flex-start;gap:0;
+  overflow-x:auto;padding-bottom:.5rem;
+}
+.flow-step{
+  flex:1;min-width:130px;
+  display:flex;flex-direction:column;
+  align-items:center;text-align:center;
+  position:relative;
+  opacity:0;transform:translateY(12px);
+}
+.flow-step.visible{opacity:1;transform:translateY(0);transition:all .5s}
+.flow-step:not(:last-child)::after{
+  content:'';position:absolute;
+  top:24px;left:60%;
+  width:80%;height:1px;
+  background:linear-gradient(to right,var(--gold-dim),transparent);
+}
+.step-circle{
+  width:48px;height:48px;border-radius:50%;
+  background:var(--surface2);
+  border:1px solid rgba(201,168,76,.25);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.3rem;margin-bottom:.8rem;
+  position:relative;z-index:1;
+}
+.step-title{font-size:.82rem;font-weight:500;margin-bottom:.3rem}
+.step-desc{font-size:.7rem;color:var(--text-dim);line-height:1.5;padding:0 .5rem}
+.extras-section{
+  margin-top:2.5rem;
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:.8rem;
+  width:100%;
+}
+.extra-pill{
+  background:var(--surface);
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:10px;padding:.7rem .9rem;
+  font-size:.74rem;
+  display:flex;align-items:center;gap:.5rem;
+  opacity:0;transform:translateY(8px);
+  transition:all .3s;
+}
+.extra-pill.visible{opacity:1;transform:translateY(0)}
+.extra-pill:hover{border-color:rgba(201,168,76,.2)}
+.ep-icon{font-size:.9rem}
+
+/* =====================
+   SLIDE 8 — TECH STACK
+   ===================== */
+#s8{background:var(--ink2)}
+.tech-layout{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:3rem;width:100%;max-width:1000px;
+  align-items:start;margin-top:2rem;
+}
+.tech-group{margin-bottom:1.5rem}
+.tech-group-label{
+  font-family:'DM Mono',monospace;font-size:.7rem;
+  letter-spacing:.15em;color:var(--gold);text-transform:uppercase;
+  margin-bottom:.8rem;
+  display:flex;align-items:center;gap:.8rem;
+}
+.tech-group-label::after{content:'';flex:1;height:1px;background:rgba(201,168,76,.15)}
+.tech-pills{display:flex;flex-wrap:wrap;gap:.5rem}
+.tech-pill{
+  background:var(--surface2);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:8px;
+  padding:.4rem .9rem;
+  font-size:.76rem;
+  color:var(--text-dim);
+  transition:all .25s;
+  opacity:0;
+}
+.tech-pill.visible{opacity:1;transition:all .4s}
+.tech-pill:hover{border-color:rgba(201,168,76,.2);color:var(--text)}
+.arch-diagram{
+  background:var(--surface);
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:18px;padding:1.5rem;
+}
+.arch-row{display:flex;gap:.6rem;margin-bottom:.6rem;align-items:center}
+.arch-box{
+  flex:1;background:rgba(255,255,255,.04);
+  border-radius:8px;padding:.5rem .7rem;
+  font-size:.72rem;text-align:center;
+  border:1px solid rgba(255,255,255,.06);
+  color:var(--text-dim);
+  transition:border-color .3s;
+}
+.arch-box:hover{border-color:rgba(201,168,76,.2);color:var(--text)}
+.arch-arrow{color:var(--muted);font-size:.8rem;flex-shrink:0}
+.arch-label{
+  font-size:.6rem;letter-spacing:.1em;color:var(--muted);
+  text-transform:uppercase;margin-bottom:.4rem;
+}
+
+/* =====================
+   SLIDE 9 — TIMELINE
+   ===================== */
+#s9{background:var(--ink)}
+.project-timeline{
+  width:100%;max-width:900px;margin-top:2rem;
+}
+.phase{
+  display:flex;gap:1.5rem;
+  padding-bottom:1.8rem;
+  position:relative;
+  opacity:0;transform:translateX(-12px);
+}
+.phase.visible{opacity:1;transform:translateX(0);transition:all .5s}
+.phase::before{
+  content:'';position:absolute;
+  left:20px;top:44px;
+  width:1px;height:calc(100% - 24px);
+  background:rgba(255,255,255,.06);
+}
+.phase:last-child::before{display:none}
+.phase-dot{
+  width:40px;height:40px;flex-shrink:0;
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:'DM Mono',monospace;font-size:.7rem;
+  position:relative;z-index:1;
+}
+.ph1 .phase-dot{background:rgba(201,168,76,.1);border:1px solid var(--gold);color:var(--gold)}
+.ph2 .phase-dot{background:rgba(79,195,161,.08);border:1px solid var(--accent2);color:var(--accent2)}
+.ph3 .phase-dot{background:rgba(123,94,167,.08);border:1px solid var(--accent);color:var(--accent)}
+.ph4 .phase-dot{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.15);color:var(--text-dim)}
+.phase-content h3{font-size:.95rem;font-weight:500;margin-bottom:.3rem}
+.phase-content p{font-size:.78rem;color:var(--text-dim);line-height:1.6}
+.phase-duration{
+  font-family:'DM Mono',monospace;font-size:.65rem;
+  color:var(--muted);margin-top:.4rem;
+}
+.phase-tags{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.5rem}
+.phase-tag{
+  font-size:.65rem;padding:.2rem .5rem;border-radius:4px;
+  background:rgba(255,255,255,.04);color:var(--text-dim);
+}
+
+/* =====================
+   SLIDE 10 — CTA
+   ===================== */
+#s10{
+  background:var(--ink);
+  text-align:center;
+}
+.cta-bg{
+  position:absolute;inset:0;
+  background:radial-gradient(ellipse 60% 50% at 50% 50%,rgba(201,168,76,.07) 0%,transparent 70%);
+}
+.cta-eyebrow{
+  font-family:'DM Mono',monospace;font-size:.7rem;
+  letter-spacing:.3em;color:var(--gold);text-transform:uppercase;
+  margin-bottom:1.5rem;
+}
+.cta-title{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(2.8rem,5vw,4.5rem);
+  line-height:1.1;font-weight:700;
+  margin-bottom:1.5rem;
+}
+.cta-title em{color:var(--gold);font-style:italic}
+.cta-sub{
+  font-size:.95rem;color:var(--text-dim);
+  max-width:520px;margin:0 auto 3rem;
+  line-height:1.7;
+}
+.cta-buttons{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap}
+.btn-primary{
+  background:var(--gold);color:var(--ink);
+  border:none;border-radius:100px;
+  padding:.9rem 2.2rem;font-size:.85rem;
+  font-weight:600;cursor:pointer;
+  font-family:'DM Sans',sans-serif;
+  transition:all .2s;letter-spacing:.02em;
+}
+.btn-primary:hover{background:var(--gold-light);transform:translateY(-2px)}
+.btn-secondary{
+  background:transparent;color:var(--text);
+  border:1px solid rgba(255,255,255,.12);border-radius:100px;
+  padding:.9rem 2.2rem;font-size:.85rem;
+  font-weight:400;cursor:pointer;
+  font-family:'DM Sans',sans-serif;
+  transition:all .2s;
+}
+.btn-secondary:hover{border-color:rgba(201,168,76,.4);transform:translateY(-2px)}
+.contact-row{
+  margin-top:3rem;display:flex;gap:2.5rem;
+  justify-content:center;flex-wrap:wrap;
+}
+.contact-item{
+  display:flex;flex-direction:column;align-items:center;gap:.4rem;
+  font-size:.75rem;color:var(--text-dim);
+}
+.contact-item a{color:var(--gold-light);text-decoration:none}
+.yapaze-footer{
+  position:absolute;bottom:1.8rem;left:50%;transform:translateX(-50%);
+  font-family:'DM Mono',monospace;font-size:.65rem;
+  letter-spacing:.2em;color:var(--muted);
+}
+
+/* =====================
+   ANIMATIONS
+   ===================== */
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(24px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+/* Stagger visible transitions */
+.feat-card:nth-child(1){transition-delay:.05s}
+.feat-card:nth-child(2){transition-delay:.1s}
+.feat-card:nth-child(3){transition-delay:.15s}
+.feat-card:nth-child(4){transition-delay:.2s}
+.feat-card:nth-child(5){transition-delay:.25s}
+.feat-card:nth-child(6){transition-delay:.3s}
+
+.pain-card:nth-child(1){transition-delay:.05s}
+.pain-card:nth-child(2){transition-delay:.15s}
+.pain-card:nth-child(3){transition-delay:.25s}
+.pain-card:nth-child(4){transition-delay:.35s}
+
+.tl-item:nth-child(1){transition-delay:.05s}
+.tl-item:nth-child(2){transition-delay:.15s}
+.tl-item:nth-child(3){transition-delay:.25s}
+.tl-item:nth-child(4){transition-delay:.35s}
+.tl-item:nth-child(5){transition-delay:.45s}
+
+.flow-step:nth-child(1){transition-delay:.05s}
+.flow-step:nth-child(2){transition-delay:.15s}
+.flow-step:nth-child(3){transition-delay:.25s}
+.flow-step:nth-child(4){transition-delay:.35s}
+.flow-step:nth-child(5){transition-delay:.45s}
+.flow-step:nth-child(6){transition-delay:.55s}
+
+.extra-pill:nth-child(1){transition-delay:.6s}
+.extra-pill:nth-child(2){transition-delay:.65s}
+.extra-pill:nth-child(3){transition-delay:.7s}
+.extra-pill:nth-child(4){transition-delay:.75s}
+.extra-pill:nth-child(5){transition-delay:.8s}
+.extra-pill:nth-child(6){transition-delay:.85s}
+.extra-pill:nth-child(7){transition-delay:.9s}
+.extra-pill:nth-child(8){transition-delay:.95s}
+
+.phase:nth-child(1){transition-delay:.05s}
+.phase:nth-child(2){transition-delay:.2s}
+.phase:nth-child(3){transition-delay:.35s}
+.phase:nth-child(4){transition-delay:.5s}
+
+.sol-item:nth-child(1){transition-delay:.1s}
+.sol-item:nth-child(2){transition-delay:.2s}
+.sol-item:nth-child(3){transition-delay:.3s}
+.sol-item:nth-child(4){transition-delay:.4s}
+
+.tier-card:nth-child(1){transition-delay:.05s}
+.tier-card:nth-child(2){transition-delay:.15s}
+.tier-card:nth-child(3){transition-delay:.25s}
+
+.tech-pill{transition-delay:.05s}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--ink)}
+::-webkit-scrollbar-thumb{background:var(--muted);border-radius:2px}
+
+/* =====================
+   FACE RECOGNITION SLIDE
+   ===================== */
+#s-face { background: var(--ink); }
+
+.face-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3.5rem;
+  align-items: center;
+  width: 100%;
+  max-width: 1100px;
+}
+
+/* ── Right side: phone mockup ── */
+.face-visual {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+  position: relative;
+}
+
+.face-phone {
+  width: 210px;
+  background: var(--surface2);
+  border-radius: 28px;
+  border: 1px solid rgba(255,255,255,.08);
+  overflow: hidden;
+  box-shadow: 0 40px 80px rgba(0,0,0,.6);
+}
+
+.face-phone-top {
+  background: var(--surface);
+  padding: .6rem .8rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255,255,255,.05);
+}
+
+.face-phone-title {
+  font-size: .55rem;
+  color: var(--text-dim);
+  font-family: 'DM Mono', monospace;
+  letter-spacing: .08em;
+}
+
+/* Camera scan viewport */
+.face-scan-area {
+  margin: 1rem .8rem;
+  background: rgba(0,0,0,.4);
+  border-radius: 16px;
+  height: 170px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(79,195,161,.15);
+}
+
+/* Oval face outline */
+.scan-face-outline {
+  width: 80px;
+  height: 90px;
+  border-radius: 50% 50% 45% 45%;
+  border: 2px solid rgba(79,195,161,.5);
+  animation: scanPulse 2s ease-in-out infinite;
+}
+
+@keyframes scanPulse {
+  0%, 100% {
+    border-color: rgba(79,195,161,.4);
+    box-shadow: 0 0 0 0 rgba(79,195,161,0);
+  }
+  50% {
+    border-color: rgba(79,195,161,.9);
+    box-shadow: 0 0 0 8px rgba(79,195,161,.08);
+  }
+}
+
+/* Moving scan line */
+.scan-line {
+  position: absolute;
+  left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(to right, transparent, var(--accent2), transparent);
+  animation: scanMove 2s linear infinite;
+  box-shadow: 0 0 8px var(--accent2);
+}
+
+@keyframes scanMove {
+  0%   { top: 0; }
+  100% { top: 100%; }
+}
+
+/* Corner brackets */
+.scan-corners { position: absolute; inset: 0; }
+
+.scan-corners::before,
+.scan-corners::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-color: var(--accent2);
+  border-style: solid;
+}
+
+.scan-corners::before {
+  top: 6px; left: 6px;
+  border-width: 2px 0 0 2px;
+}
+
+.scan-corners::after {
+  bottom: 6px; right: 6px;
+  border-width: 0 2px 2px 0;
+}
+
+.face-scan-label {
+  font-size: .52rem;
+  color: var(--accent2);
+  text-align: center;
+  padding: .4rem;
+  letter-spacing: .05em;
+}
+
+/* Matched photos strip */
+.face-photos-row {
+  display: flex;
+  gap: .4rem;
+  padding: .4rem .8rem .8rem;
+}
+
+.face-photo-thumb {
+  flex: 1;
+  height: 52px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  border: 1px solid rgba(255,255,255,.06);
+}
+
+.fpt1 { background: linear-gradient(135deg, #2a1f3d, #1a1328); }
+.fpt2 { background: linear-gradient(135deg, #1f2a2a, #132020); }
+.fpt3 { background: linear-gradient(135deg, #2a2a1f, #201f13); }
+
+.face-found-badge {
+  background: rgba(79,195,161,.1);
+  border: 1px solid rgba(79,195,161,.25);
+  border-radius: 8px;
+  padding: .3rem .6rem;
+  font-size: .5rem;
+  color: var(--accent2);
+  text-align: center;
+  margin: .2rem .8rem .8rem;
+}
+
+/* ── Integration card ── */
+.integration-box {
+  background: var(--surface2);
+  border: 1px solid rgba(201,168,76,.15);
+  border-radius: 16px;
+  padding: 1.2rem 1.4rem;
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.integration-box-label {
+  font-size: .65rem;
+  letter-spacing: .12em;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: .8rem;
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+}
+
+.integration-box-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(201,168,76,.15);
+}
+
+.integration-modes { display: flex; gap: .6rem; }
+
+.int-mode {
+  flex: 1;
+  border-radius: 10px;
+  padding: .7rem .8rem;
+  font-size: .7rem;
+  text-align: center;
+  border: 1px solid rgba(255,255,255,.06);
+  background: var(--surface);
+  color: var(--text-dim);
+  transition: all .3s;
+}
+
+.int-mode:hover {
+  border-color: rgba(201,168,76,.2);
+  color: var(--text);
+}
+
+.int-mode b {
+  display: block;
+  font-size: .75rem;
+  color: var(--text);
+  margin-bottom: .3rem;
+}
+
+/* ── Left side: steps ── */
+.face-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.face-step {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  opacity: 0;
+  transform: translateX(20px);
+}
+
+.face-step.visible {
+  opacity: 1;
+  transform: translateX(0);
+  transition: all .5s;
+}
+
+.face-step:nth-child(1) { transition-delay: .05s; }
+.face-step:nth-child(2) { transition-delay: .18s; }
+.face-step:nth-child(3) { transition-delay: .31s; }
+.face-step:nth-child(4) { transition-delay: .44s; }
+.face-step:nth-child(5) { transition-delay: .57s; }
+
+.face-step-num {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: rgba(79,195,161,.08);
+  border: 1px solid rgba(79,195,161,.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'DM Mono', monospace;
+  font-size: .7rem;
+  color: var(--accent2);
+}
+
+.face-step-text h3 {
+  font-size: .9rem;
+  font-weight: 500;
+  margin-bottom: .25rem;
+}
+
+.face-step-text p {
+  font-size: .78rem;
+  color: var(--text-dim);
+  line-height: 1.55;
+}
+
+/* Privacy note */
+.privacy-note {
+  margin-top: 1.5rem;
+  background: rgba(201,168,76,.04);
+  border: 1px solid rgba(201,168,76,.1);
+  border-radius: 12px;
+  padding: .9rem 1rem;
+  font-size: .74rem;
+  color: var(--text-dim);
+  line-height: 1.6;
+}
+
+.privacy-note b { color: var(--gold-light); }
+
+@media (max-width: 980px) {
+  .slide { padding: 3rem 2rem; }
+  .site-header { left: 50%; transform: translateX(-50%); width: calc(100% - 2rem); padding: 10px 16px; gap: 12px; }
+  .site-header .nav { flex-wrap: wrap; justify-content: center; gap: 10px; }
+  .site-header .cta { width: 100%; justify-content: center; }
+  .cover-logo { top: 1rem; left: 1rem; right: 1rem; position: absolute; width: auto; }
+  .cover-logo img { width: 48px; height: auto; }
+  .cover-title { font-size: clamp(2.6rem, 10vw, 4.2rem); }
+  .cover-sub { margin-left: auto; margin-right: auto; }
+  .cover-scroll { bottom: 1.8rem; }
+  .pain-grid,
+  .solution-layout,
+  .features-grid,
+  .notif-layout,
+  .revenue-layout,
+  .tech-layout,
+  .flow-wrapper,
+  .extras-section,
+  .project-timeline,
+  .price-wrap,
+  .contact-list,
+  .timeline,
+  .face-layout { grid-template-columns: 1fr; display: grid; }
+  .solution-layout,
+  .notif-layout,
+  .revenue-layout,
+  .tech-layout,
+  .face-layout { gap: 2rem; }
+  .pain-grid { display: grid; grid-template-columns: 1fr; }
+  .features-grid { grid-template-columns: 1fr; }
+  .extras-section { grid-template-columns: 1fr 1fr; }
+  .flow-step:not(:last-child)::after { display: none; }
+  .flow-steps { overflow-x: visible; }
+  .solution-visual,
+  .price-card,
+  .notif-preview,
+  .integration-box,
+  .phone-frame,
+  .face-phone,
+  .contact-item { width: 100%; }
+  .phone-frame { position: relative; left: 50%; transform: translateX(-50%); width: min(100%, 320px); height: auto; }
+  .phone-screen { min-height: auto; }
+  .floating-badge { position: static; transform: none; width: auto; margin-top: .8rem; }
+  .fb1, .fb2, .fb3 { left: auto; right: auto; top: auto; bottom: auto; }
+  .feature-grid,
+  .price-wrap { flex-direction: column; }
+  .site-header .nav a { padding: .5rem .8rem; }
+  .btn-sm, .btn-primary, .btn-secondary { width: auto; }
+}
+
+@media (max-width: 680px) {
+  .slide { padding: 2rem 1rem; }
+  .site-header { position: static; transform: none; width: 100%; border-radius: 24px; }
+  /* Keep nav items on one line, allow horizontal scroll if necessary */
+  .site-header .nav { gap: 8px; overflow-x: auto; -webkit-overflow-scrolling: touch; display: flex; flex-wrap: nowrap; }
+  .site-header .nav a { padding: .35rem .6rem; white-space: nowrap; flex: 0 0 auto; font-size: clamp(.72rem, 2.2vw, .88rem); letter-spacing: .02em; }
+  .site-header .nav a:hover,.site-header .nav a:focus{ text-decoration: none; }
+  .site-header .nav::-webkit-scrollbar{height:6px}
+  .site-header .nav::-webkit-scrollbar-thumb{background:rgba(255,255,255,.06);border-radius:6px}
+
+  .section-label { font-size: .75rem; }
+  .slide-heading { font-size: clamp(2rem, 9vw, 2.6rem); }
+  .cover-title { font-size: clamp(2.4rem, 12vw, 3.6rem); }
+  .cover-badge { padding: .5rem 1rem; font-size: .75rem; }
+  .contact-list { display: flex; flex-direction: column; padding: 0; }
+  .contact-item { width: 100%; }
+  .solution-visual { margin-top: 2rem; }
+  .phone-frame { width: 100%; max-width: 280px; }
+  .section-label::before { width: 24px; }
+  .pain-card,
+  .feat-card,
+  .tier-card,
+  .tl-item,
+  .face-step,
+  .phase { flex-direction: column; align-items: stretch; }
+  .phase::before { display: none; }
+  .timeline::before { left: 14px; }
+  .tl-item { padding-left: 0; }
+  .message-bubble { font-size: .78rem; }
+  .arch-row { flex-direction: column; gap: .6rem; }
+  .contact-row { flex-direction: column; gap: 1rem; }
+}
+
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+<div id="progress"></div>
+
+<nav id="nav-dots"></nav>
+
+<!-- Fixed site header -->
+<header class="site-header" role="banner">
+  <div class="logo-inline">
+    <img src="./YaPaze_01_Primary_Lockup_Tagline_All_White.png" alt="YaPaze logo"/>
+  </div>
+  <nav class="nav" role="navigation">
+    <a href="#s1">Home</a>
+    <a href="https://wa.me/918714414438?text=Hello%20-%20I%27d%20like%20to%20schedule%20a%20demo%20of%20the%20Marriage%20Management%20System" target="_blank">Connect Us</a>
+    <a href="#pricing">Pricing</a>
+    <a href="https://wa.me/918714414438?text=Hello%20-%20I%27d%20like%20to%20schedule%20a%20demo%20of%20the%20Marriage%20Management%20System" target="_blank" class="btn-ghost">Schedule a Demo</a>
+  </nav>
+  <div class="cta"></div>
+</header>
+
+<!-- ========================
+     SLIDE 1 — COVER
+     ======================== -->
+<section class="slide" id="s1">
+  <div class="cover-bg"></div>
+  <div class="cover-rings">
+    <div class="ring"></div><div class="ring"></div><div class="ring"></div><div class="ring"></div>
+  </div>
+  <div class="cover-eyebrow">YaPaze Technologies · The Nex-Gen Technology Partner</div>
+  <h1 class="cover-title">Marriage<br/><span>Management</span><br/>System</h1>
+  <p class="cover-sub">An all-in-one digital platform for event management companies — automated guest communications, smart advertising, and seamless wedding experiences.</p>
+  <div class="cover-badge">
+    <div class="dot-sep"></div>
+    Blueprint &amp; Product Presentation
+    <div class="dot-sep"></div>
+  </div>
+  <div class="cover-scroll">
+    <div class="scroll-line"></div>
+    <span>SCROLL</span>
+  </div>
+</section>
+
+<!-- ========================
+     SLIDE 2 — THE PROBLEM
+     ======================== -->
+<section class="slide" id="s2">
+  <div style="width:100%;max-width:900px">
+    <div class="section-label">The Problem</div>
+    <h2 class="slide-heading">Wedding planning is still<br/><em>painfully manual</em></h2>
+    <p style="color:var(--text-dim);font-size:.9rem;max-width:540px;line-height:1.7">Event management companies waste hours on phone calls, scattered guest lists, and missed reminders. There is no unified system.</p>
+    <div class="pain-grid">
+      <div class="pain-card">
+        <div class="pain-icon">📋</div>
+        <div>
+          <div class="pain-title">No centralized guest data</div>
+          <div class="pain-desc">Guest lists live in spreadsheets, WhatsApp chats, and paper notebooks — impossible to manage at scale.</div>
+        </div>
+      </div>
+      <div class="pain-card">
+        <div class="pain-icon">🔔</div>
+        <div>
+          <div class="pain-title">Reminders are sent manually</div>
+          <div class="pain-desc">Someone has to personally call or message hundreds of guests, causing delays and missed notifications.</div>
+        </div>
+      </div>
+      <div class="pain-card">
+        <div class="pain-icon">📍</div>
+        <div>
+          <div class="pain-title">Location confusion on event day</div>
+          <div class="pain-desc">Guests call frantically asking for directions because there is no digital invite with a map link.</div>
+        </div>
+      </div>
+      <div class="pain-card">
+        <div class="pain-icon">💸</div>
+        <div>
+          <div class="pain-title">Zero marketing during the event</div>
+          <div class="pain-desc">Event companies miss the opportunity to advertise their services to hundreds of potential future clients.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================
+     SLIDE 3 — THE SOLUTION
+     ======================== -->
+<section class="slide" id="s3">
+  <div class="solution-layout">
+    <div>
+      <div class="section-label">The Solution</div>
+      <h2 class="slide-heading">One platform.<br/><em>Every detail.</em></h2>
+      <p style="color:var(--text-dim);font-size:.85rem;line-height:1.7;margin-bottom:2rem">We build a branded wedding website per event, automate all guest communications, and embed your company's advertising at every touchpoint.</p>
+      <div class="solution-list">
+        <div class="sol-item">
+          <div class="sol-num">01</div>
+          <div class="sol-text">
+            <h3>Custom event website — live 1 month before</h3>
+            <p>Save the date video, location map, RSVP portal, full event details and countdown.</p>
+          </div>
+        </div>
+        <div class="sol-item">
+          <div class="sol-num">02</div>
+          <div class="sol-text">
+            <h3>Automated multi-channel guest notifications</h3>
+            <p>WhatsApp, SMS and voice call reminders at 3 days, 2 days, 1 day and 6 hours before the event.</p>
+          </div>
+        </div>
+        <div class="sol-item">
+          <div class="sol-num">03</div>
+          <div class="sol-text">
+            <h3>Built-in advertising system</h3>
+            <p>Your company's ads run on every page visit and inside every notification automatically.</p>
+          </div>
+        </div>
+        <div class="sol-item">
+          <div class="sol-num">04</div>
+          <div class="sol-text">
+            <h3>Admin dashboard for full control</h3>
+            <p>Manage RSVPs, seating, notification logs, and ad analytics from one clean panel.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="solution-visual">
+      <div class="phone-frame">
+        <div class="phone-screen">
+          <div class="phone-header">💍 Sara &amp; Ahmed — Wedding</div>
+          <div class="phone-card">
+            <div class="phone-card-title">📅 Event Details</div>
+            Saturday, 14 September 2025 · 7:00 PM<br/>Grand Ballroom, Riyadh
+          </div>
+          <div class="phone-map">📍 Open in Google Maps →</div>
+          <div class="phone-card">
+            <div class="phone-card-title">✅ RSVP</div>
+            Will you be attending?
+          </div>
+          <div class="phone-btn">Confirm Attendance</div>
+          <div style="width:100%;background:rgba(123,94,167,.1);border:1px solid rgba(123,94,167,.15);border-radius:8px;padding:.5rem .7rem;font-size:.5rem;color:#a88ee8;margin-top:.3rem">
+            📢 Sponsored · Elegant Events Co. — Premium wedding planning since 2010
+          </div>
+        </div>
+      </div>
+      <div class="floating-badge fb1"><span class="fb-dot"></span>RSVP Confirmed · 248 guests</div>
+      <div class="floating-badge fb2"><span class="fb-dot"></span>WhatsApp sent · 3 days before</div>
+      <div class="floating-badge fb3"><span class="fb-dot"></span>Ad impressions · 1,240</div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================
+     SLIDE 4 — FEATURES
+     ======================== -->
+<section class="slide" id="s4">
+  <div style="width:100%;max-width:1000px">
+    <div class="section-label">Core Features</div>
+    <h2 class="slide-heading">Everything you need,<br/><em>nothing you don't</em></h2>
+    <div class="features-grid">
+      <div class="feat-card">
+        <span class="feat-emoji">🌐</span>
+        <div class="feat-name">Custom event website</div>
+        <div class="feat-desc">Branded page with hero, countdown, save-the-date video, location redirect, and contact details.</div>
+        <div class="feat-tag">Website</div>
+      </div>
+      <div class="feat-card">
+        <span class="feat-emoji">✅</span>
+        <div class="feat-name">Online RSVP system</div>
+        <div class="feat-desc">Guests confirm attendance, meal preference, and dietary needs digitally — no phone calls needed.</div>
+        <div class="feat-tag">Guest Management</div>
+      </div>
+      <div class="feat-card">
+        <span class="feat-emoji">🗺️</span>
+        <div class="feat-name">Interactive map &amp; directions</div>
+        <div class="feat-desc">One-tap button opens Google Maps or Waze with the venue pre-loaded. Eliminates day-of confusion.</div>
+        <div class="feat-tag">Website</div>
+      </div>
+      <div class="feat-card">
+        <span class="feat-emoji">📲</span>
+        <div class="feat-name">Multi-channel reminders</div>
+        <div class="feat-desc">Automated WhatsApp, SMS, and voice call notifications at 3 days, 2 days, 1 day, and 6 hours.</div>
+        <div class="feat-tag">Notifications</div>
+      </div>
+      <div class="feat-card">
+        <span class="feat-emoji">📢</span>
+        <div class="feat-name">Embedded advertising</div>
+        <div class="feat-desc">Company ads run on every page load and inside every notification — fully automated exposure.</div>
+        <div class="feat-tag">Monetisation</div>
+      </div>
+      <div class="feat-card">
+        <span class="feat-emoji">🎫</span>
+        <div class="feat-name">QR code guest passes</div>
+        <div class="feat-desc">Each guest receives a unique digital pass. Scanned at the venue door for contactless check-in.</div>
+        <div class="feat-tag">Guest Management</div>
+      </div>
+      <div class="feat-card">
+        <span class="feat-emoji">🪑</span>
+        <div class="feat-name">Seating planner</div>
+        <div class="feat-desc">Drag-and-drop table assignments linked to RSVP data. Export ready for event day staff.</div>
+        <div class="feat-tag">Planning</div>
+      </div>
+      <div class="feat-card">
+        <span class="feat-emoji">📊</span>
+        <div class="feat-name">Admin dashboard</div>
+        <div class="feat-desc">Real-time RSVP counts, notification logs, ad analytics, and multi-event management in one panel.</div>
+        <div class="feat-tag">Management</div>
+      </div>
+      <div class="feat-card">
+        <span class="feat-emoji">📸</span>
+        <div class="feat-name">Post-event gallery</div>
+        <div class="feat-desc">Password-protected photo album shared with guests after the event. Memory book auto-compiled as PDF.</div>
+        <div class="feat-tag">Post-Event</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================
+     SLIDE 5 — NOTIFICATIONS
+     ======================== -->
+<section class="slide" id="s5">
+  <div class="notif-layout">
+    <div>
+      <div class="section-label">Notification Engine</div>
+      <h2 class="slide-heading">Guests never<br/><em>miss a moment</em></h2>
+      <p style="color:var(--text-dim);font-size:.82rem;line-height:1.7;margin-bottom:1.5rem">A fully automated schedule keeps every guest informed — with your company's advertisement embedded in each message.</p>
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-dot">−30</div>
+          <div class="tl-content">
+            <h3>1 month before — Website goes live</h3>
+            <p>Event page published, save-the-date video sent to all guests via WhatsApp.</p>
+            <div class="channels"><span class="ch-pill">WhatsApp</span></div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot">−3</div>
+          <div class="tl-content">
+            <h3>3 days before — First reminder</h3>
+            <p>Full event details + location link + company ad. Sent via all channels.</p>
+            <div class="channels"><span class="ch-pill">WhatsApp</span><span class="ch-pill">SMS</span><span class="ch-pill">Voice</span></div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot">−2</div>
+          <div class="tl-content">
+            <h3>2 days before — Confirmation nudge</h3>
+            <p>Reminder to finalize travel plans. RSVP status check for pending guests.</p>
+            <div class="channels"><span class="ch-pill">WhatsApp</span><span class="ch-pill">SMS</span></div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot">−1</div>
+          <div class="tl-content">
+            <h3>1 day before — Final prep</h3>
+            <p>Dress code reminder, parking info, and any last-minute updates from the couple.</p>
+            <div class="channels"><span class="ch-pill">WhatsApp</span><span class="ch-pill">Voice</span></div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot">−6h</div>
+          <div class="tl-content">
+            <h3>6 hours before — Starting soon</h3>
+            <p>Live directions link, door opens time, and a warm voice invitation call.</p>
+            <div class="channels"><span class="ch-pill">WhatsApp</span><span class="ch-pill">SMS</span><span class="ch-pill">Voice</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="notif-preview">
+      <div class="notif-preview-label">Sample WhatsApp notification</div>
+      <div class="message-bubble">
+        🎊 <b>You're invited!</b><br/><br/>
+        Dear Khalid,<br/><br/>
+        We're counting down — <b>Sara &amp; Ahmed's wedding</b> is in <b>3 days</b>!<br/><br/>
+        📅 Saturday, 14 Sep · 7:00 PM<br/>
+        📍 Grand Ballroom, Riyadh<br/>
+        🗺️ <span style="color:var(--gold-light)">Get Directions →</span><br/>
+        ✅ <span style="color:var(--gold-light)">View Invite Page →</span>
+      </div>
+      <div class="ad-strip">
+        <div class="ad-img">✨</div>
+        <div class="ad-text">
+          <b>Elegant Events Co.</b>
+          Planning your next celebration? We handle every detail.
+          <div class="ad-tag">📢 Sponsored · elegantevents.com</div>
+        </div>
+      </div>
+      <div class="channel-icons">
+        <div class="chan-icon">💬 WhatsApp</div>
+        <div class="chan-icon">📱 SMS</div>
+        <div class="chan-icon">📞 Voice Call</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s-face">
+  <div style="width:100%;max-width:1100px;margin:0 auto;padding-top:1rem">
+    <div class="face-layout">
+
+      <div>
+        <div class="section-label">Smart Photo Delivery</div>
+        <h2 class="slide-heading">Scan your face.<br/><em>Get your photos.</em></h2>
+        <p style="color:var(--text-dim);font-size:.85rem;line-height:1.7;margin-bottom:1.8rem">
+          Guests scan a QR code at the event, open the face scan page,
+          and instantly receive every photo the photographer captured of
+          them — no searching, no album digging.
+        </p>
+
+        <div class="face-steps">
+
+          <div class="face-step">
+            <div class="face-step-num">01</div>
+            <div class="face-step-text">
+              <h3>Guest scans the event QR code</h3>
+              <p>A unique QR code is placed at the venue — on tables, walls, or the welcome board. One scan opens the photo portal.</p>
+            </div>
+          </div>
+
+          <div class="face-step">
+            <div class="face-step-num">02</div>
+            <div class="face-step-text">
+              <h3>Face scan on their phone</h3>
+              <p>The browser opens the camera. The guest looks into it for 3 seconds. No app download required — fully web-based.</p>
+            </div>
+          </div>
+
+          <div class="face-step">
+            <div class="face-step-num">03</div>
+            <div class="face-step-text">
+              <h3>AI matches face to photo library</h3>
+              <p>The system compares the scan against all photos uploaded by the photographer and returns every matched image instantly.</p>
+            </div>
+          </div>
+
+          <div class="face-step">
+            <div class="face-step-num">04</div>
+            <div class="face-step-text">
+              <h3>Guest downloads their photos</h3>
+              <p>A personal gallery of all matched photos is shown. One tap to download all — or share directly to WhatsApp and Instagram.</p>
+            </div>
+          </div>
+
+          <div class="face-step">
+            <div class="face-step-num">05</div>
+            <div class="face-step-text">
+              <h3>Photographer integration — plug &amp; play</h3>
+              <p>Photographers with their own face recognition system connect via our open API. We provide a simple webhook — their system pushes photos, ours handles delivery.</p>
+            </div>
+          </div>
+
+        </div><!-- /face-steps -->
+
+        <div class="privacy-note">
+          🔒 <b>Privacy first.</b> Face data is processed in real time and never stored.
+          Only matched photo files are returned. Guests opt in before scanning.
+          Fully GDPR-aligned.
+        </div>
+      </div>
+
+      <div class="face-visual">
+
+        <div class="face-phone">
+          <div class="face-phone-top">
+            <div class="face-phone-title">📸 sara-ahmed.yapaze.com/photos</div>
+            <div style="font-size:.5rem;color:var(--accent2)">● LIVE</div>
+          </div>
+
+          <div style="padding:.6rem .8rem .2rem;font-size:.55rem;color:var(--text-dim);text-align:center">
+            Look at the camera to find your photos
+          </div>
+
+          <div class="face-scan-area">
+            <div class="scan-corners"></div>
+            <div class="scan-line"></div>
+            <div class="scan-face-outline"></div>
+          </div>
+
+          <div class="face-scan-label">🔍 Scanning · Please hold still...</div>
+
+          <div class="face-found-badge">
+            ✅ 14 photos found — tap to view &amp; download
+          </div>
+
+          <div class="face-photos-row">
+            <div class="face-photo-thumb fpt1">🤵</div>
+            <div class="face-photo-thumb fpt2">💃</div>
+            <div class="face-photo-thumb fpt3">🥂</div>
+          </div>
+        </div><!-- /face-phone -->
+
+        <div class="integration-box">
+          <div class="integration-box-label">Photographer Integration</div>
+          <div class="integration-modes">
+            <div class="int-mode">
+              <b>🔌 API Connect</b>
+              Photographer uses own system — connects via webhook. Photos push automatically.
+            </div>
+            <div class="int-mode">
+              <b>☁️ Direct Upload</b>
+              Photographer uploads to our platform. We handle face matching end to end.
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /face-visual -->
+
+    </div><!-- /face-layout -->
+  </div>
+</section>
+
+
+<!-- ========================
+     SLIDE 6 — ADS & REVENUE
+     ======================== -->
+<section class="slide" id="pricing">
+  <div style="width:100%;max-width:1100px;margin:0 auto;text-align:center;padding-top:1rem">
+    <div class="section-label">Pricing</div>
+    <h2 class="slide-heading">Packages</h2>
+    <div class="price-wrap">
+      <div class="price-card">
+        <h3>🥉 Basic Package</h3>
+        <div class="includes">
+          <ul>
+            <li>Wedding Website</li>
+            <li>Save The Date Page</li>
+            <li>Photo Gallery</li>
+            <li>Event Details</li>
+            <li>Google Maps Location</li>
+            <li>Contact Information</li>
+            <li>RSVP Form</li>
+            <li>Countdown Timer</li>
+          </ul>
+        </div>
+        <div class="connect"><button class="btn-primary" onclick="window.open('https://wa.me/918714414438?text=Hello%20-%20I%27d%20like%20to%20schedule%20a%20demo%20of%20the%20Marriage%20Management%20System')">Connect Us</button></div>
+      </div>
+
+      <div class="price-card featured">
+        <h3>🥈 Premium Package</h3>
+        <div class="includes">
+          <ul>
+            <li>Everything in Basic</li>
+            <li>WhatsApp Notifications</li>
+            <li>SMS Notifications</li>
+            <li>Guest Dashboard</li>
+            <li>RSVP Tracking</li>
+            <li>Guest Import (Excel)</li>
+            <li>Multi-Event Support</li>
+            <li>Custom Domain</li>
+            <li>Advertisement-Free Website</li>
+          </ul>
+        </div>
+        <div class="connect"><button class="btn-primary" onclick="window.open('https://wa.me/918714414438?text=Hello%20-%20I%27d%20like%20to%20schedule%20a%20demo%20of%20the%20Marriage%20Management%20System')">Connect Us</button></div>
+      </div>
+
+      <div class="price-card">
+        <h3>🥇 Gold Package</h3>
+        <div class="includes">
+          <ul>
+            <li>Everything in Premium</li>
+            <li>AI Voice Invitations</li>
+            <li>QR Code Check-In</li>
+            <li>Live Attendance Tracking</li>
+            <li>Guest Analytics</li>
+            <li>VIP Guest Management</li>
+            <li>Seating Management</li>
+            <li>Live Streaming Integration</li>
+          </ul>
+        </div>
+        <div class="connect"><button class="btn-primary" onclick="window.open('https://wa.me/918714414438?text=Hello%20-%20I%27d%20like%20to%20schedule%20a%20demo%20of%20the%20Marriage%20Management%20System')">Connect Us</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="slide" id="s6">
+  <div class="revenue-layout">
+    <div>
+      <div class="section-label">Ads &amp; Monetisation</div>
+      <h2 class="slide-heading">Your brand reaches<br/><em>every guest, every time</em></h2>
+      <p style="color:var(--text-dim);font-size:.82rem;line-height:1.7;margin-bottom:.5rem">Each wedding becomes a marketing opportunity. Every guest who visits the site or receives a notification sees your company's advertisement.</p>
+      <div class="tier-cards">
+        <div class="tier-card basic">
+          <div>
+            <div class="tier-name">Basic</div>
+            <div class="tier-perks">Banner ad on website · 1 notification embed</div>
+          </div>
+          <div class="tier-price">Entry<span>per event</span></div>
+        </div>
+        <div class="tier-card featured">
+          <div>
+            <div class="tier-name">⭐ Featured</div>
+            <div class="tier-perks">Banner + video pre-roll · All notification channels · Priority placement</div>
+          </div>
+          <div class="tier-price">Mid-tier<span>per event</span></div>
+        </div>
+        <div class="tier-card exclusive">
+          <div>
+            <div class="tier-name">💎 Exclusive</div>
+            <div class="tier-perks">All placements · Sponsored vendor section · Advertiser analytics dashboard</div>
+          </div>
+          <div class="tier-price">Premium<span>per event</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="revenue-right">
+      <div class="section-label" style="margin-top:.5rem">Ad Placement Locations</div>
+      <div class="where-label">Where your ads appear</div>
+      <div class="placement-list">
+        <div class="placement-item">Home page — hero banner, visible on every visit</div>
+        <div class="placement-item">Location &amp; RSVP pages — sidebar ad block</div>
+        <div class="placement-item">Save-the-date video — 5-second pre-roll</div>
+        <div class="placement-item">WhatsApp notifications — branded message footer</div>
+        <div class="placement-item">SMS reminders — short ad tagline + link</div>
+        <div class="placement-item">Voice call — branded intro before invitation</div>
+        <div class="placement-item">Post-event thank you page — full ad panel</div>
+      </div>
+      <div class="where-label" style="margin-top:1.2rem">Additional revenue streams</div>
+      <div class="placement-list">
+        <div class="placement-item">Sponsored vendor section (caterers, DJs, florists)</div>
+        <div class="placement-item">Commission on vendor bookings via platform</div>
+        <div class="placement-item">Premium features sold per couple (QR check-in, AI invite)</div>
+      </div>
+      <div class="revenue-stat" style="margin-top:1.2rem">
+        <div class="revenue-stat-label">Avg. guests per event</div>
+        <div class="revenue-stat-val">300+</div>
+      </div>
+      <div class="revenue-stat">
+        <div class="revenue-stat-label">Touchpoints per guest</div>
+        <div class="revenue-stat-val">6–8</div>
+      </div>
+      <div class="revenue-stat">
+        <div class="revenue-stat-label">Events managed simultaneously</div>
+        <div class="revenue-stat-val">Unlimited</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================
+     SLIDE 7 — GUEST JOURNEY
+     ======================== -->
+<section class="slide" id="s7">
+  <div style="width:100%;max-width:1000px">
+    <div class="section-label">Guest Experience</div>
+    <h2 class="slide-heading">A seamless journey<br/><em>from invite to entrance</em></h2>
+    <div class="flow-wrapper">
+      <div class="flow-steps">
+        <div class="flow-step">
+          <div class="step-circle">💌</div>
+          <div class="step-title">Invite received</div>
+          <div class="step-desc">WhatsApp message with website link and save-the-date video</div>
+        </div>
+        <div class="flow-step">
+          <div class="step-circle">🌐</div>
+          <div class="step-title">Visits website</div>
+          <div class="step-desc">Views event details, location, video — sees company ad</div>
+        </div>
+        <div class="flow-step">
+          <div class="step-circle">✅</div>
+          <div class="step-title">RSVPs online</div>
+          <div class="step-desc">Confirms attendance, selects meal, receives QR pass</div>
+        </div>
+        <div class="flow-step">
+          <div class="step-circle">🔔</div>
+          <div class="step-title">Gets reminders</div>
+          <div class="step-desc">3-day, 2-day, 1-day, and 6-hour alerts with ad embedded</div>
+        </div>
+        <div class="flow-step">
+          <div class="step-circle">📍</div>
+          <div class="step-title">Navigates to venue</div>
+          <div class="step-desc">One tap opens Maps with venue pre-loaded</div>
+        </div>
+        <div class="flow-step">
+          <div class="step-circle">🎫</div>
+          <div class="step-title">Checks in</div>
+          <div class="step-desc">QR pass scanned at the door — instant entry</div>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:2rem">
+      <div class="section-label">Bonus Features</div>
+    </div>
+    <div class="extras-section">
+      <div class="extra-pill"><span class="ep-icon">📸</span>Live photo wall</div>
+      <div class="extra-pill"><span class="ep-icon">🎁</span>Gift registry</div>
+      <div class="extra-pill"><span class="ep-icon">🤖</span>AI invite writer</div>
+      <div class="extra-pill"><span class="ep-icon">💰</span>Budget tracker</div>
+      <div class="extra-pill"><span class="ep-icon">🌍</span>Arabic / English UI</div>
+      <div class="extra-pill"><span class="ep-icon">💬</span>WhatsApp group auto</div>
+      <div class="extra-pill"><span class="ep-icon">📖</span>Digital guestbook</div>
+      <div class="extra-pill"><span class="ep-icon">📦</span>Vendor marketplace</div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================
+     SLIDE 8 — TECH STACK
+     ======================== -->
+<section class="slide" id="s8">
+  <div style="width:100%;max-width:1000px">
+    <div class="section-label">Technology Blueprint</div>
+    <h2 class="slide-heading">Built on proven,<br/><em>enterprise-grade tech</em></h2>
+    <div class="tech-layout">
+      <div>
+        <div class="tech-group">
+          <div class="tech-group-label">Frontend</div>
+          <div class="tech-pills">
+            <span class="tech-pill">Next.js</span>
+            <span class="tech-pill">React</span>
+            <span class="tech-pill">Tailwind CSS</span>
+            <span class="tech-pill">Framer Motion</span>
+            <span class="tech-pill">Vercel</span>
+          </div>
+        </div>
+        <div class="tech-group">
+          <div class="tech-group-label">Backend &amp; API</div>
+          <div class="tech-pills">
+            <span class="tech-pill">Node.js</span>
+            <span class="tech-pill">Express</span>
+            <span class="tech-pill">PostgreSQL</span>
+            <span class="tech-pill">Redis</span>
+            <span class="tech-pill">REST API</span>
+          </div>
+        </div>
+        <div class="tech-group">
+          <div class="tech-group-label">Notifications</div>
+          <div class="tech-pills">
+            <span class="tech-pill">Twilio (SMS + Voice)</span>
+            <span class="tech-pill">WhatsApp Business API</span>
+            <span class="tech-pill">Cron scheduler</span>
+          </div>
+        </div>
+        <div class="tech-group">
+          <div class="tech-group-label">Media &amp; Maps</div>
+          <div class="tech-pills">
+            <span class="tech-pill">Cloudinary</span>
+            <span class="tech-pill">AWS S3</span>
+            <span class="tech-pill">Google Maps API</span>
+            <span class="tech-pill">QR Code Gen</span>
+          </div>
+        </div>
+        <div class="tech-group">
+          <div class="tech-group-label">Billing &amp; Analytics</div>
+          <div class="tech-pills">
+            <span class="tech-pill">Stripe</span>
+            <span class="tech-pill">Mixpanel</span>
+            <span class="tech-pill">Custom ad tracker</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="arch-diagram">
+          <div class="arch-label">System architecture</div>
+          <div class="arch-row">
+            <div class="arch-box" style="border-color:rgba(201,168,76,.2);color:var(--text)">Wedding Website</div>
+            <div class="arch-arrow">→</div>
+            <div class="arch-box" style="border-color:rgba(201,168,76,.2);color:var(--text)">Admin Panel</div>
+          </div>
+          <div style="display:flex;justify-content:center;color:var(--muted);font-size:.8rem;margin:.4rem 0">↕</div>
+          <div class="arch-row">
+            <div class="arch-box">API Gateway</div>
+          </div>
+          <div style="display:flex;justify-content:center;color:var(--muted);font-size:.8rem;margin:.4rem 0">↕</div>
+          <div class="arch-row">
+            <div class="arch-box">Guest DB</div>
+            <div class="arch-arrow">·</div>
+            <div class="arch-box">Notif. Engine</div>
+            <div class="arch-arrow">·</div>
+            <div class="arch-box">Ad Engine</div>
+          </div>
+          <div style="display:flex;justify-content:center;color:var(--muted);font-size:.8rem;margin:.4rem 0">↕</div>
+          <div class="arch-row">
+            <div class="arch-box">WhatsApp API</div>
+            <div class="arch-arrow">·</div>
+            <div class="arch-box">Twilio</div>
+            <div class="arch-arrow">·</div>
+            <div class="arch-box">Maps API</div>
+          </div>
+          <div style="display:flex;justify-content:center;color:var(--muted);font-size:.8rem;margin:.4rem 0">↕</div>
+          <div class="arch-row">
+            <div class="arch-box">Media CDN</div>
+            <div class="arch-arrow">·</div>
+            <div class="arch-box">Analytics</div>
+            <div class="arch-arrow">·</div>
+            <div class="arch-box">Billing</div>
+          </div>
+        </div>
+        <div style="margin-top:1rem;padding:1rem;background:rgba(79,195,161,.05);border:1px solid rgba(79,195,161,.1);border-radius:12px;font-size:.76rem;color:var(--text-dim);line-height:1.6">
+          <span style="color:var(--accent2);font-weight:500">Custom sub-domains</span> per event.<br/>
+          Each wedding gets its own URL:<br/>
+          <span style="font-family:'DM Mono',monospace;color:var(--gold-light)">sara-ahmed.yapaze.net</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================
+     SLIDE 9 — DELIVERY PLAN
+     ======================== -->
+<section class="slide" id="s9">
+  <div style="width:100%;max-width:900px">
+    <div class="section-label">Delivery Roadmap</div>
+    <h2 class="slide-heading">From kickoff to<br/><em>first live event</em></h2>
+    <div class="project-timeline">
+      <div class="phase ph1">
+        <div class="phase-dot">1</div>
+        <div class="phase-content">
+          <h3>Discovery &amp; Design — Weeks 1–2</h3>
+          <p>Requirements workshop, brand audit, wireframes, and UI design for the wedding website template and admin panel.</p>
+          <div class="phase-tags">
+            <span class="phase-tag">Wireframes</span>
+            <span class="phase-tag">UI Design</span>
+            <span class="phase-tag">Brand integration</span>
+          </div>
+          <div class="phase-duration">⏱ 2 weeks</div>
+        </div>
+      </div>
+      <div class="phase ph2">
+        <div class="phase-dot">2</div>
+        <div class="phase-content">
+          <h3>Core Platform Build — Weeks 3–7</h3>
+          <p>Website frontend, admin dashboard, guest management system, RSVP flow, and QR code generation. Database and API layer.</p>
+          <div class="phase-tags">
+            <span class="phase-tag">Frontend</span>
+            <span class="phase-tag">Backend</span>
+            <span class="phase-tag">Database</span>
+            <span class="phase-tag">RSVP system</span>
+          </div>
+          <div class="phase-duration">⏱ 5 weeks</div>
+        </div>
+      </div>
+      <div class="phase ph3">
+        <div class="phase-dot">3</div>
+        <div class="phase-content">
+          <h3>Notification &amp; Ads Integration — Weeks 8–10</h3>
+          <p>WhatsApp Business API setup, Twilio SMS and voice integration, ad engine, notification scheduler, and analytics dashboard.</p>
+          <div class="phase-tags">
+            <span class="phase-tag">WhatsApp API</span>
+            <span class="phase-tag">Twilio</span>
+            <span class="phase-tag">Ad engine</span>
+            <span class="phase-tag">Analytics</span>
+          </div>
+          <div class="phase-duration">⏱ 3 weeks</div>
+        </div>
+      </div>
+      <div class="phase ph4">
+        <div class="phase-dot">4</div>
+        <div class="phase-content">
+          <h3>Testing, Training &amp; Launch — Weeks 11–12</h3>
+          <p>Full QA, load testing with 500+ simulated guests, admin training session, and go-live with first real event.</p>
+          <div class="phase-tags">
+            <span class="phase-tag">QA Testing</span>
+            <span class="phase-tag">Training</span>
+            <span class="phase-tag">Go-live</span>
+          </div>
+          <div class="phase-duration">⏱ 2 weeks · Total: 12 weeks</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================
+     SLIDE 10 — CTA
+     ======================== -->
+<section class="slide" id="s10">
+  <div class="cta-bg"></div>
+  <div class="cta-eyebrow">YaPaze Technologies</div>
+  <h2 class="cta-title">Ready to build<br/>the <em>future of weddings?</em></h2>
+  <p class="cta-sub">Let's turn this blueprint into a live product. YaPaze Technologies will design, build, and deliver your Marriage Management System end to end.</p>
+  <div class="cta-buttons">
+    <button class="btn-primary" onclick="window.open('mailto:info@yapaze.net')">Start the Project</button>
+    <button class="btn-secondary" onclick="window.open('https://yapaze.net')">Visit Us</button>
+  </div>
+  <div class="contact-list">
+    <a class="contact-item" href="mailto:info@yapaze.net">
+      <div class="ci-left">✉️</div>
+      <div class="ci-content"><div class="ci-title">Email us</div><div class="ci-sub">info@yapaze.net</div></div>
+      <div class="ci-arrow">➜</div>
+    </a>
+
+    <a class="contact-item" href="https://www.instagram.com/yapaze.net_?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" target="_blank">
+      <div class="ci-left">📷</div>
+      <div class="ci-content"><div class="ci-title">Instagram</div><div class="ci-sub">@yapaze.net</div></div>
+      <div class="ci-arrow">➜</div>
+    </a>
+
+    <div class="contact-item">
+      <div class="ci-left">📞</div>
+      <div class="ci-content"><div class="ci-title">Mobile</div><div class="ci-sub">+91 82818 54438</div></div>
+      <div class="ci-actions">
+        <a class="btn-primary" href="tel:+918281854438">Chat</a>
+      </div>
+    </div>
+
+    <div class="contact-item">
+      <div class="ci-left">💬</div>
+      <div class="ci-content"><div class="ci-title">WhatsApp</div><div class="ci-sub">+91 87144 14438</div></div>
+      <div class="ci-actions">
+        <a class="btn-primary" href="https://wa.me/918714414438?text=Hello%20-%20I%27d%20like%20to%20schedule%20a%20demo%20of%20the%20Marriage%20Management%20System" target="_blank">Chat</a>
+      </div>
+    </div>
+  </div>
+  <div class="yapaze-footer">© 2025 YaPaze Technologies · All Rights Reserved</div>
+</section>
+
+<script>
+// ─── Cursor ───────────────────────────────
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursor-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{
+  mx=e.clientX; my=e.clientY;
+  cursor.style.transform=`translate(${mx-6}px,${my-6}px)`;
+});
+function animRing(){
+  rx+=(mx-rx)*.12; ry+=(my-ry)*.12;
+  ring.style.transform=`translate(${rx-18}px,${ry-18}px)`;
+  requestAnimationFrame(animRing);
+}
+animRing();
+
+// ─── Nav dots ─────────────────────────────
+const slides=document.querySelectorAll('.slide');
+const navEl=document.getElementById('nav-dots');
+slides.forEach((_,i)=>{
+  const d=document.createElement('button');
+  d.className='dot';
+  d.setAttribute('aria-label',`Slide ${i+1}`);
+  d.onclick=()=>slides[i].scrollIntoView({behavior:'smooth'});
+  navEl.appendChild(d);
+});
+
+// ─── Progress + active dot + scroll reveal ─
+const dots=document.querySelectorAll('.dot');
+const progress=document.getElementById('progress');
+const animEls=document.querySelectorAll('.pain-card,.feat-card,.sol-item,.tl-item,.flow-step,.extra-pill,.phase,.tier-card,.revenue-stat,.tech-pill,.face-step');
+
+const io=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting) e.target.classList.add('visible');
+  });
+},{threshold:.15});
+animEls.forEach(el=>io.observe(el));
+
+// Revenue stats stagger
+document.querySelectorAll('.revenue-stat').forEach((el,i)=>{
+  el.style.transitionDelay=`${.1+i*.15}s`;
+});
+document.querySelectorAll('.tech-pill').forEach((el,i)=>{
+  el.style.transitionDelay=`${i*.04}s`;
+});
+
+// Active slide detection
+const slideIo=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      const idx=[...slides].indexOf(e.target);
+      dots.forEach((d,i)=>d.classList.toggle('active',i===idx));
+      const pct=((idx+1)/slides.length)*100;
+      progress.style.width=pct+'%';
+    }
+  });
+},{threshold:.5});
+slides.forEach(s=>slideIo.observe(s));
+
+// ─── Keyboard navigation ──────────────────
+document.addEventListener('keydown',e=>{
+  const curr=[...slides].findIndex(s=>{
+    const r=s.getBoundingClientRect();
+    return r.top<=window.innerHeight/2 && r.bottom>=window.innerHeight/2;
+  });
+  if(e.key==='ArrowDown'||e.key==='PageDown'){
+    if(curr<slides.length-1) slides[curr+1].scrollIntoView({behavior:'smooth'});
+  }
+  if(e.key==='ArrowUp'||e.key==='PageUp'){
+    if(curr>0) slides[curr-1].scrollIntoView({behavior:'smooth'});
+  }
+});
+</script>
+</body>
+</html>
